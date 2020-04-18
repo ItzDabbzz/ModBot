@@ -1,5 +1,5 @@
-const { RichEmbed } = require("discord.js");
-const {stripIndents} = require("common-tags");
+const Utils = require(`../modules/utils`)
+const Embed = Utils.Embed;
 
 exports.conf = {
   enabled: true,
@@ -21,7 +21,7 @@ exports.run = async (client, message, args) => {
             .then(function(list){
                 message.channel.bulkDelete(list);
 
-                let embed = client.embed({
+                let embed = Embed({
                   description: `Purge`,
                   timestamp: new Date(),
                   author: `Purged Up To 100 Messages`,

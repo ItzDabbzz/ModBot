@@ -1,6 +1,6 @@
 .world/
 config.js
-
+node_modules/
 
 # Created by https://www.gitignore.io/api/java,linux,macos,maven,windows,eclipse,netbeans,intellij
 
@@ -254,7 +254,7 @@ $RECYCLE.BIN/
 config/*
 logs/*
 
-node_modules/*
+
 
 # End of https://www.gitignore.io/api/java,linux,macos,maven,windows,eclipse,netbeans,intellij
 WolfMCBot.iml

@@ -2,7 +2,7 @@
     enabled: true,
     guildOnly: true,
     aliases: [],
-    permLevel: "User"
+    permLevel: "Administrator"
   };
   
   exports.help = {

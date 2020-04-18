@@ -1,6 +1,7 @@
 const { RichEmbed } = require("discord.js");
 const { stripIndents } = require("common-tags");
-const { getMember, formatDate } = require("../modules/functions");
+const Utils = require(`../modules/utils`);
+const Embed = Utils.Embed
 
 exports.conf = {
   enabled: true,
@@ -17,7 +18,7 @@ exports.help = {
 };
 
 exports.run = async (client, message, args) => {
-    const member = client.getMember(message, args.join(" "));
+    const member = Utils.getMember(message, args.join(" "));
 
     // Member variables
     const joined = client.formatDate(member.joinedAt);
@@ -34,86 +35,51 @@ exports.run = async (client, message, args) => {
     } else {
         nickname = "None"
     };
-    
-    if (member.presence.activities !== null && member.presence.activities.type === 2 && member.presence.activities.name === "Spotify") {
-        const trackURL = `https://open.spotify.com/track/${user.presence.activities.syncID}`;
-        playingStatus = `${trackURL}`
-    } else if (member.presence.activities) {
-        playingStatus = member.presence.activities.name;
-    } else {
-        playingStatus = "None";
-    };
+
+    const reports = Utils.Variables.database.get.getReportsNum(member.id);
 
     //get user punishments
-    const reports = await client.db.r.table("punishments").run()
-    .filter(punishment => punishment.offender === `${message.guild.id}-${member.id}` && punishment.type === `report`);
-
-    const strikes = await client.db.r.table("punishments").run()
-    .filter(punishment => punishment.offender === `${message.guild.id}-${member.id}` && punishment.type === `strike`);
-
-    const kicks = await client.db.r.table("punishments").run()
-    .filter(punishment => punishment.offender === `${message.guild.id}-${member.id}` && punishment.type === `kick`);
-
     const kickable = member.kickable ? "✅" : "❎";
     const bannable = member.bannable ? "✅" : "❎";
-
+    Utils.Logger.debug(reports)
+    const reportsProm = Promise.resolve(reports);
+    reportsProm.then(function(rep) {
     
-    let embed = client.embed({
+    let embed = Embed({
         title: 'User Information',
         fields: [{
             name: 'Member information:',
-            value: `**> Display name:** ${member.displayName}
+            value: stripIndents`**> Display name:** ${member.displayName}
             **> Joined at:** ${joined}
             **> Roles:** ${roles}
-            **> Created:** ${created}`
+            **> Created:** ${created}`,
+            inline: true
         },
         {
             name: 'User information:',
-            value: `**> ID:** ${member.user.id}
+            value: stripIndents`**> ID:** ${member.user.id}
             **> Username**: ${member.user.username}
             **> Nickname**: ${nickname}
             **> Tag**: ${member.user.tag}
-            **> Status**: ${playingStatus}`
+            **> Status**: ${member.presence.activities}`,
+            inline: true
         },
         {   
           name: 'Punishments:',
-          value: `**> Strikes**: ${strikes.length}
-          **> Reports**: ${reports.length}
-          **> Kicks**: ${kicks.length}
+          value: stripIndents`**> Reports**: ${rep}
           **> Kickable**: ${kickable}
           **> Bannable**: ${bannable}`
         }],
         timestamp: new Date(),
         color: member.displayHexColor === '#000000' ? '#ffffff' : member.displayHexColor,
         author: message.author.displayName,
-        footer: `${client.config.footer} | User: ${member.displayName} | Guild ID: ${message.guild.id}`,
+        footer: `User: ${member.displayName} | Guild: ${message.guild.name}`,
         thumbnail: member.user.displayAvatarURL({ format: 'png', dynamic: true, size: 1024 })  
     })
     
-    /*const embed = new RichEmbed()
-        .setFooter(`${client.config.footer} | ${member.displayName}`, member.user.displayAvatarURL)
-        .setThumbnail(member.user.displayAvatarURL)
-        .setColor(member.displayHexColor === '#000000' ? '#ffffff' : member.displayHexColor)
-
-        .addField('Member information:', stripIndents`**> Display name:** ${member.displayName}
-        **> Joined at:** ${joined}
-        **> Roles:** ${roles}
-        **> Created:** ${created}`, true)
-
-        .addField('User information:', stripIndents`**> ID:** ${member.user.id}
-        **> Username**: ${member.user.username}
-        **> Nickname**: ${nickname}
-        **> Tag**: ${member.user.tag}
-        **> Status**: ${playingStatus}`)
-
-        .addField(`Punishments:`, stripIndents`**Strikes**: ${punishments.length}
-        **> Bannable**: ${bannable}
-        **> Kickable**: ${kickable}`)
+    if (member.user.presence.game) 
+        embed.embed.fields.push({ name: `Currently playing`, value: stripIndents`**> Name:** ${member.user.presence.game.name}`, inline: true});
         
-        .setTimestamp()*/
-
-    //if (member.user.presence.game) 
-    //    embed.addField('Currently playing', stripIndents`**> Name:** ${member.user.presence.game.name}`);
-
     message.channel.send(embed);
+})
 };

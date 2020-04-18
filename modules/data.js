@@ -1,6 +1,7 @@
-let Utils = {};
+let Utils = require('./utils');
+let vars = Utils.Variables;
 const sqlite = require("better-sqlite3");
-
+const Embed = require('../modules/embed');
 let db = new sqlite("ModBot.sqlite");
 
 
@@ -24,9 +25,9 @@ module.exports = {
                 db.prepare('CREATE TABLE IF NOT EXISTS coins(user text, guild text, coins integer)').run();
                 db.prepare('CREATE TABLE IF NOT EXISTS dailycoinscooldown (user text, guild text, date text)').run();
                 db.prepare('CREATE TABLE IF NOT EXISTS experience(user text, guild text, level integer, xp integer)').run();
-                db.prepare("CREATE TABLE IF NOT EXISTS punishments (id INTEGER PRIMARY KEY AUTOINCREMENT, type TEXT, userID TEXT, reportedby TEXT, reason TEXT, time INTEGER)").run();
+                db.prepare("CREATE TABLE IF NOT EXISTS punishments (type TEXT, user TEXT, reason TEXT, time INTEGER,  executor TEXT)").run();
                 db.prepare('CREATE TABLE IF NOT EXISTS warnings (id INTEGER PRIMARY KEY AUTOINCREMENT, user text, tag text, reason text, time integer, executor text)').run();
-                
+                db.prepare("CREATE TABLE IF NOT EXISTS reports (id INTEGER PRIMARY KEY AUTOINCREMENT, userID TEXT, reportedby TEXT, reason TEXT)").run();
             }catch (err) {
                         console.log(err);
                         reject('[ERROR] SQLite3 is not installed. Install it with npm install better-sqlite3. Bot will shut down.');
@@ -133,14 +134,25 @@ module.exports = {
                 }
             })
         },
-        getWarning(id) {
+        getReport(id) {
             return new Promise((resolve, reject) => {
-                module.exports.sqlite.database.all('SELECT * FROM warnings WHERE id=?', [id], function (err, warnings) {
-                    if (err) reject(err);
-                    else resolve(warnings[0]);
-                })
+                if(id){
+                    module.exports.sqlite.database.all('SELECT * FROM reports WHERE userID=?', [id], function (err, reports) {
+                        if (err) reject(err);
+                        else resolve(reports[0]);
+                    })
+                }else
+                {
+                    module.exports.sqlite.database.run('SELECT * FROM reports', function (err, reports) {
+                        if (err) reject(err);
+                        else resolve(reports[0]);
+                    })
+                }
             })
         },
+        getReportsNum(id){
+            return module.exports.sqlite.database.prepare("SELECT * FROM punishments WHERE user=?").all(id).length;
+        }
     },
     coins: {
         setUserCoins(user, newcoins) {
@@ -204,6 +216,80 @@ module.exports = {
                     }
                 })
             })
+        }
+    },
+    punishments: {
+        addPunishment(data) {
+            return new Promise((resolve, reject) => {
+                if (['type', 'user', 'reason', 'time', 'executor'].some(a => !data[a])) return reject('Invalid arguments for addPunishment');
+                module.exports.sqlite.database.run('INSERT INTO punishments(type, user, reason, time, executor) VALUES(?, ?, ?, ?, ?)', [data.type, data.user, data.reason, data.time, data.executor], function (err) {
+                    if (err) reject(err);
+                    else resolve();
+                })
+            })
+        },
+        removePunishment(id) {
+            return new Promise((resolve, reject) => {
+                module.exports.sqlite.database.run('DELETE FROM punishments WHERE id=?', [id], function (err) {
+                    if (err) reject(err);
+                    else resolve();
+                })
+            })
+        },
+        addWarning(data) {
+            return new Promise((resolve, reject) => {
+                if (['user', 'reason', 'time', 'executor'].some(a => !data[a])) return reject('Invalid arguments for addWarning');
+
+                module.exports.sqlite.database.run('INSERT INTO warnings(user, reason, time, executor) VALUES(?, ?, ?, ?, ?)', [data.user, data.reason, data.time, data.executor], function (err) {
+                    if (err) reject(err);
+                    else resolve();
+                })
+            })
+        },
+        removeWarning(id) {
+            return new Promise((resolve, reject) => {
+                module.exports.sqlite.database.run('DELETE FROM warnings WHERE id=?', [id], function (err) {
+                    if (err) reject(err);
+                    else resolve(err);
+                })
+            })
+        },
+        addReport(id, userId, reportedBy, reason) {
+            console.log(`Report Added: ${userId} | ${reportedBy} | ${reason}`)
+            db.prepare("INSERT INTO reports (id, userID, reportedby, reason) VALUES (?, ?, ?, ?)").run(id, userId, reportedBy.id, reason);
+        },
+        async reportsEmbed(message, args) {
+            let embed = Embed({
+                title: 'Reports',
+                fields: [{
+                    name: `ID`,
+                    value: `Info`
+                }],
+                timestamp: new Date(),
+                color: 'RANDOM',
+                footer: `ID: ${args[0]}`
+            })
+
+            let target = message.guild.members.cache.get(args[0]);
+        
+            if (!target && message.mentions.members)
+                target = message.mentions.members.first();
+        
+            if (!target && toFind) {
+                target = message.guild.members.cache.find(member => member.username === `${member.displayName.toLowerCase().includes(toFind)}`);
+            }
+        
+            if (!target)
+                target = message.member;
+
+            const reports = await module.exports.get.getReport(target)
+        
+            if(!reports || reports.length == 0) console.log("Nope.");
+
+            
+            embed.embed.fields.push({ name: `${reports.id}`, value: `User: <@${reports.userID}> \n Reported By: <@${reports.reportedby}> \nReason: ${reports.reason}`, inline: true});
+            
+            await message.channel.send(embed);
         }
     }
 }

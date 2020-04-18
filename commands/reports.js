@@ -1,5 +1,6 @@
 const { Client, RichEmbed } = require(`discord.js`);
 const Utils = require(`../modules/utils`)
+const vars = Utils.Variables;
 
 exports.conf = {
   enabled: true,
@@ -16,8 +17,8 @@ exports.help = {
 };
 
 exports.run = async (client, message, args) => {
-    if (!args[0]) return message.channel.send(client.embed({preset: `error`, description: `Please mention a user's ID`}))
+    if (!args[0]) return message.channel.send(Utils.Embed({preset: `error`, description: `Please mention a user's ID`}))
 
 
-    client.dbFile.reportsEmbed(client, message, args);
+    vars.database.punishments.reportsEmbed(client, message, args);
 };

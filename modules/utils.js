@@ -1,4 +1,3 @@
-let client;
 const net = require('net')
 const variables = require('./variables');
 module.exports = {
@@ -6,8 +5,9 @@ module.exports = {
     Embed: require('./embed'),
     Logger: require('./Logger'),
     Variables: require('./variables'),
-    DB: require('./database'),
+    DB: require('./data'),
     functions: require(`./functions`),
+    Client: variables.client,
     loadCommand: (commandName) => {
         try {
           variables.logger.cmd(`Loading Command: ${commandName}`);
@@ -124,7 +124,7 @@ module.exports = {
         }
         return role;
     },
-    findMember: function(message, toFind = '') {
+    getMember: function(message, toFind = '') {
         toFind = toFind.toLowerCase();
     
         let target = message.guild.members.cache.get(toFind);

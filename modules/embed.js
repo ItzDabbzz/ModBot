@@ -31,6 +31,15 @@ module.exports = function (embedOptions) {
                         timestamp: new Date()
                     }
                 }
+            case 'ready':
+                return {
+                    embed: {
+                        color: `#00ff33`,
+                        title: "Succesful",
+                        description: 'It Worked!',
+                        timestamp: new Date()
+                    }
+                }
             case 'invalidargs':
                 return {
                     embed: {

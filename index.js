@@ -3,7 +3,9 @@ const Discord = require("discord.js");
 const Utils = require('./modules/utils');
 const { promisify } = require("util");
 const readdir = promisify(require("fs").readdir);
-const client = new Discord.Client({ autoReconnect: true });
+const client = new Discord.Client({ autoReconnect: true,
+restRequestTimeout: 25000,
+retryLimit: 5 });
 const variables = Utils.Variables;
 
 // Let's start by getting some useful functions that we'll use throughout
@@ -15,6 +17,7 @@ client.config = require("./config.js");
 // client.config.token contains the bot's token
 // client.config.prefix contains the message prefix
 
+client.muted = require('./data/muted.json');
 
 
 // Aliases and commands are put in collections where they can be read from,
@@ -31,7 +34,6 @@ variables.set('config', client.config);
 variables.set('client', client);
 variables.set('database', database)
 variables.set(`logger`, logger);
-
 
 
 
@@ -110,7 +112,7 @@ async function init(){
   });
 
   // Here we login the client.
-  client.login(`NjczOTA5MjE3NTE3ODk1Njgx.XjheNA.JW5Z-f7xcWFN0bqkG_kM9sgBTGU`);
+  client.login(`NjczOTA5MjE3NTE3ODk1Njgx.XpndkA.sTzf-STiBzpzarApFFrsRL51NS8`);
   variables.set('client', client);
 }
 
