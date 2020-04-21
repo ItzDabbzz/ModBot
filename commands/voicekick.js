@@ -1,3 +1,5 @@
+const Utils = require(`../modules/utils`);
+const Embed = Utils.Embed;
 exports.conf = {
   enabled: true,
   guildOnly: true,
@@ -19,8 +21,17 @@ exports.run = async (client, message, args) => {
       if(!user) return message.reply("You must mention someone or give their ID!");
       const reason = args.slice(1).join(" ");
       const member = message.guild.member(user);
-      member.voice.setChannel(null, `DabbzzBot | Voice Kick by ${message.author.name}`);
+      member.voice.setChannel(null, `Voice Kicked by ${message.author.name}`);
       message.react("✅");
-      client.db.createPunish(client, message, type, user, reason, modLogs);
-      client.logger.log(`${user} Voice Kicked By ${message.author.name}`);
+
+      await Utils.Variables.database.punishments.addPunishment({
+        type: `vkick`,
+        user: user.id,
+        reason: reason,
+        time: message.createdAt.getTime(),
+        executor: message.author.id
+    })
+
+      //client.db.createPunish(client, message, type, user, reason, modLogs);
+      //client.logger.log(`${user} Voice Kicked By ${message.author.name}`);
   }

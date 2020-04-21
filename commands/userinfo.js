@@ -36,50 +36,51 @@ exports.run = async (client, message, args) => {
         nickname = "None"
     };
 
-    const reports = Utils.Variables.database.get.getReportsNum(member.id);
+    //const reports = Utils.Variables.database.get.getReportsNum(member.id);
+   // const mutes = Utils.Variables.database.get.getMutesNum(member.id);
+    const history = Promise.resolve(Utils.Variables.database.get.getPunishmentsForUser(member.id));
 
-    //get user punishments
-    const kickable = member.kickable ? "✅" : "❎";
-    const bannable = member.bannable ? "✅" : "❎";
-    Utils.Logger.debug(reports)
-    const reportsProm = Promise.resolve(reports);
-    reportsProm.then(function(rep) {
-    
-    let embed = Embed({
-        title: 'User Information',
-        fields: [{
-            name: 'Member information:',
-            value: stripIndents`**> Display name:** ${member.displayName}
-            **> Joined at:** ${joined}
-            **> Roles:** ${roles}
-            **> Created:** ${created}`,
-            inline: true
-        },
-        {
-            name: 'User information:',
-            value: stripIndents`**> ID:** ${member.user.id}
-            **> Username**: ${member.user.username}
-            **> Nickname**: ${nickname}
-            **> Tag**: ${member.user.tag}
-            **> Status**: ${member.presence.activities}`,
-            inline: true
-        },
-        {   
-          name: 'Punishments:',
-          value: stripIndents`**> Reports**: ${rep}
-          **> Kickable**: ${kickable}
-          **> Bannable**: ${bannable}`
-        }],
-        timestamp: new Date(),
-        color: member.displayHexColor === '#000000' ? '#ffffff' : member.displayHexColor,
-        author: message.author.displayName,
-        footer: `User: ${member.displayName} | Guild: ${message.guild.name}`,
-        thumbnail: member.user.displayAvatarURL({ format: 'png', dynamic: true, size: 1024 })  
-    })
-    
-    if (member.user.presence.game) 
-        embed.embed.fields.push({ name: `Currently playing`, value: stripIndents`**> Name:** ${member.user.presence.game.name}`, inline: true});
+    history.then(function(value) { 
+        //get user punishments
+        const kickable = member.kickable ? "✅" : "❎";
+        const bannable = member.bannable ? "✅" : "❎";
+        let embed = Embed({
+            title: 'User Information',
+            fields: [{
+                name: 'Member information:',
+                value: stripIndents`**> Display name:** ${member.displayName}
+                **> Joined at:** ${joined}
+                **> Roles:** ${roles}
+                **> Created:** ${created}`,
+                inline: true
+            },
+            {
+                name: 'User information:',
+                value: stripIndents`**> ID:** ${member.user.id}
+                **> Username**: ${member.user.username}
+                **> Nickname**: ${nickname}
+                **> Tag**: ${member.user.tag}
+                **> Status**: ${member.presence.activities}`,
+                inline: true
+            },
+            {   
+            name: 'Punishments:',
+            value: stripIndents`**> Mutes**: ${value.length}
+            **> Kickable**: ${kickable}
+            **> Bannable**: ${bannable}`
+            }],
+            timestamp: new Date(),
+            color: member.displayHexColor === '#000000' ? '#ffffff' : member.displayHexColor,
+            author: message.author.displayName,
+            footer: `User: ${member.displayName} | Guild: ${message.guild.name}`,
+            thumbnail: member.user.displayAvatarURL({ format: 'png', dynamic: true, size: 1024 })  
+        })
         
-    message.channel.send(embed);
-})
+        if (member.user.presence.game) 
+            embed.embed.fields.push({ name: `Currently playing`, value: stripIndents`**> Name:** ${member.user.presence.game.name}`, inline: true});
+
+        message.channel.send(embed);
+    })
+   
+
 };

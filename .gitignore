@@ -260,3 +260,5 @@ logs/*
 WolfMCBot.iml
 WolfMCBot (1).iml
 src/main/java/me/itzdabbzz/wolfmc/WolfBot.java
+*.sqlite
+data/muted.json

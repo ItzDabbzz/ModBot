@@ -1,4 +1,3 @@
-const { promptMessage } = require(`../modules/functions`);
 const Utils = require(`../modules/utils`);
 const Embed = Utils.Embed;
 

@@ -17,6 +17,8 @@ exports.help = {
   usage: "<id | mention> <reason>"
 };
 
+const id = Math.floor(Math.random() * 100000)
+
 exports.run = async (client, message, args) => {
     if (message.deletable) message.delete();
     let rMember = message.mentions.members.first() || message.guild.members.cache.get(args[0]);
@@ -36,6 +38,8 @@ exports.run = async (client, message, args) => {
     if (!channel)
         return message.channel.send("Couldn't find a `#reports` channel").then(m => m.delete({timeout: 5000}));
 
+    const memid = message.member.id;
+
     let embed = Embed({
         color: `#ff0000`,
         timestamp: new Date(),
@@ -46,7 +50,7 @@ exports.run = async (client, message, args) => {
         **> Reported in:** ${message.channel}
         **> Reason:** ${reason}`
     })
-    vars.database.punishments.addReport(rMember.user.id, message.member.id, reason);
-    Utils.Logger.log(`User Reported ${rMember.name}`);
+    vars.database.punishments.addReport(id, rMember.user.id, memid, reason);
+    Utils.Logger.log(`User Reported ${rMember.name} | ${memid}`);
     return channel.send(embed);
 }

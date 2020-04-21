@@ -3,7 +3,7 @@ let vars = Utils.Variables;
 const sqlite = require("better-sqlite3");
 const Embed = require('../modules/embed');
 let db = new sqlite("ModBot.sqlite");
-
+let getpunis = db.prepare("SELECT * FROM punishments");
 
 module.exports = {
     sqlite: {
@@ -22,11 +22,10 @@ module.exports = {
                 //const tableCheck = db.prepare("SELECT count(*) FROM sqlite_master WHERE type='table' AND name='punishments';").get();
                 //if(tableCheck["count(*)"]) { return console.log("SQLite Database exists! Skipping creation step..."); } //Prevent crashing if SQLite database exists already
                 db.prepare('CREATE TABLE IF NOT EXISTS modlog(name text, enabled text)').run();
-                db.prepare('CREATE TABLE IF NOT EXISTS coins(user text, guild text, coins integer)').run();
-                db.prepare('CREATE TABLE IF NOT EXISTS dailycoinscooldown (user text, guild text, date text)').run();
-                db.prepare('CREATE TABLE IF NOT EXISTS experience(user text, guild text, level integer, xp integer)').run();
+                //db.prepare('CREATE TABLE IF NOT EXISTS coins(user text, guild text, coins integer)').run();
+                //db.prepare('CREATE TABLE IF NOT EXISTS dailycoinscooldown (user text, guild text, date text)').run();
+                //db.prepare('CREATE TABLE IF NOT EXISTS experience(user text, guild text, level integer, xp integer)').run();
                 db.prepare("CREATE TABLE IF NOT EXISTS punishments (type TEXT, user TEXT, reason TEXT, time INTEGER,  executor TEXT)").run();
-                db.prepare('CREATE TABLE IF NOT EXISTS warnings (id INTEGER PRIMARY KEY AUTOINCREMENT, user text, tag text, reason text, time integer, executor text)').run();
                 db.prepare("CREATE TABLE IF NOT EXISTS reports (id INTEGER PRIMARY KEY AUTOINCREMENT, userID TEXT, reportedby TEXT, reason TEXT)").run();
             }catch (err) {
                         console.log(err);
@@ -91,7 +90,7 @@ module.exports = {
         getPunishments(id) {
             return new Promise((resolve, reject) => {
                 if (id) {
-                    module.exports.sqlite.database.all('SELECT * FROM punishments WHERE id=?', [id], function (err, rows) {
+                    module.exports.sqlite.database.all('SELECT * FROM punishments WHERE user=?', [id], function (err, rows) {
                         if (err) reject(err);
                         else resolve(rows);
                     })
@@ -105,9 +104,9 @@ module.exports = {
         },
         getPunishmentsForUser(user) {
             return new Promise((resolve, reject) => {
-                module.exports.sqlite.database.all('SELECT * FROM punishments WHERE user=?', [user], function (err, rows) {
-                    if (err) reject(err);
-                    else resolve(rows);
+                module.exports.sqlite.database.all('SELECT type FROM punishments WHERE type=? AND user=?', [`mute`, user], function (err, punishments) {
+                    if (err) return reject(err);
+                    resolve(punishments);
                 })
             })
         },
@@ -134,12 +133,12 @@ module.exports = {
                 }
             })
         },
-        getReport(id) {
+        getReports(id) {
             return new Promise((resolve, reject) => {
                 if(id){
                     module.exports.sqlite.database.all('SELECT * FROM reports WHERE userID=?', [id], function (err, reports) {
                         if (err) reject(err);
-                        else resolve(reports[0]);
+                        else resolve(reports);
                     })
                 }else
                 {
@@ -151,6 +150,9 @@ module.exports = {
             })
         },
         getReportsNum(id){
+            return module.exports.sqlite.database.prepare("SELECT * FROM reports WHERE userID=?").all(id).length;
+        },
+        getMutesNum(id){
             return module.exports.sqlite.database.prepare("SELECT * FROM punishments WHERE user=?").all(id).length;
         }
     },
@@ -256,19 +258,9 @@ module.exports = {
         },
         addReport(id, userId, reportedBy, reason) {
             console.log(`Report Added: ${userId} | ${reportedBy} | ${reason}`)
-            db.prepare("INSERT INTO reports (id, userID, reportedby, reason) VALUES (?, ?, ?, ?)").run(id, userId, reportedBy.id, reason);
+            db.prepare("INSERT INTO reports (id, userID, reportedby, reason) VALUES (?, ?, ?, ?)").run(id, userId, reportedBy, reason);
         },
         async reportsEmbed(message, args) {
-            let embed = Embed({
-                title: 'Reports',
-                fields: [{
-                    name: `ID`,
-                    value: `Info`
-                }],
-                timestamp: new Date(),
-                color: 'RANDOM',
-                footer: `ID: ${args[0]}`
-            })
 
             let target = message.guild.members.cache.get(args[0]);
         
@@ -282,13 +274,48 @@ module.exports = {
             if (!target)
                 target = message.member;
 
-            const reports = await module.exports.get.getReport(target)
+            const mem = target.id
+            const reports = await module.exports.get.getReports(mem)
         
-            if(!reports || reports.length == 0) console.log("Nope.");
+            if(!reports || reports.length == 0) return message.channel.send(Embed({preset:`error`, description:`No Reports Were Found`}));
+            
+            let embed = Embed({
+                title: 'Reports',
+                description: reports.map(reports => `User: <@${reports.userID}> \n Reported By: <@${reports.reportedby}> \nReason: ${reports.reason} `).join(`\n\n`),
+                timestamp: new Date(),
+                color: 'RANDOM',
+                footer: `ID: ${args[0]}`
+            });
 
-            
-            embed.embed.fields.push({ name: `${reports.id}`, value: `User: <@${reports.userID}> \n Reported By: <@${reports.reportedby}> \nReason: ${reports.reason}`, inline: true});
-            
+            await message.channel.send(embed);
+        },
+        async punishmentsEmbed(message, args) {
+
+            let target = message.guild.members.cache.get(args[0]);
+        
+            if (!target && message.mentions.members)
+                target = message.mentions.members.first();
+        
+            if (!target && toFind) {
+                target = message.guild.members.cache.find(member => member.username === `${member.displayName.toLowerCase().includes(toFind)}`);
+            }
+        
+            if (!target)
+                target = message.member;
+
+            const mem = target.id
+            const punishments = await module.exports.get.getPunishments(mem)
+
+            if(!punishments || punishments.length == 0) return message.channel.send(Embed({preset:`error`, description:`No Punishments Were Found`}));
+
+            let embed = Embed({
+                title: 'Punishments',
+                description: punishments.map(punis => `Type: ${punis.type} \n User: <@${punis.user}> \n Reported By: <@${punis.executor}> \n Reason: ${punis.reason} `).join(`\n\n`),
+                timestamp: new Date(),
+                color: 'RANDOM',
+                footer: `ID: ${args[0]}`
+            })
+
             await message.channel.send(embed);
         }
     }
