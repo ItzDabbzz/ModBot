@@ -12,7 +12,7 @@
     usage: ""
   };
   
-module.run = async (client, message, args) => {
+exports.run = async (client, message, args) => {
     const msg = await message.channel.send(`🏓 Pinging....`);
 
     msg.edit(`🏓 Pong!

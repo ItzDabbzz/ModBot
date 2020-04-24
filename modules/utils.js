@@ -8,6 +8,39 @@ module.exports = {
     DB: require('./data'),
     functions: require(`./functions`),
     Client: variables.client,
+    transcriptMessage: function (message) {
+        const isEmbed = message.embeds.length > 0;
+
+        const embed = {
+            fields: [],
+            description: "",
+            title: "",
+            color: ""
+        }
+
+        if (isEmbed) {
+            embed.fields = message.embeds[0].fields || [];
+            embed.description = message.embeds[0].description || '';
+            embed.title = message.embeds[0].title || '';
+            embed.color = message.embeds[0].hexColor || "#0023b0";
+        }
+
+        if (isEmbed) {
+            this.DB.sqlite.database.run('INSERT INTO ticketmessages(message, author, authorAvatar, authorTag, created_at, embed_title, embed_description, embed_color, attachment, content, ticket) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', [message.id, message.author.id, message.author.displayAvatarURL({format:`png`, dynamic:true, size:128}), message.author.tag, message.createdAt.getTime(), embed.title, embed.description, embed.color, message.attachments.size > 0 ? message.attachments.first().url : undefined, message.content, message.channel.id], function (err) {
+                if (err) console.log(err);
+
+                embed.fields.forEach(field => {
+                    module.exports.DB.sqlite.database.run('INSERT INTO ticketmessages_embed_fields(message, name, value) VALUES(?, ?, ?)', [message.id, field.name, field.value], function (err) {
+                        if (err) console.log(err);
+                    })
+                })
+            })
+        } else {
+            this.DB.sqlite.database.run('INSERT INTO ticketmessages(message, author, authorAvatar, authorTag, created_at, embed_title, embed_description, embed_color, attachment, content, ticket) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', [message.id, message.author.id, message.author.displayAvatarURL({format:`png`, dynamic:true, size:128}), message.author.tag, message.createdAt.getTime(), undefined, undefined, undefined, message.attachments.size > 0 ? message.attachments.first().url : undefined, message.content, message.channel.id], function (err) {
+                if (err) console.log(err);
+            })
+        }
+    },
     loadCommand: (commandName) => {
         try {
           variables.logger.cmd(`Loading Command: ${commandName}`);

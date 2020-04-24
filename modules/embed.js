@@ -6,6 +6,8 @@ let Error_Color = parseInt("#FF0000", 16);
 /*let embed = Embed({
     title: 'Title',
     description: `Description`,
+    footer: { text: `footer.text`, icon_url: `footer.icon` },
+    color: `#ANY HTML COLOR CODE`,
     fields: [{
         name: 'Field 1',
         value: 'Value 1'
@@ -16,7 +18,8 @@ let Error_Color = parseInt("#FF0000", 16);
     }],
     timestamp: new Date(),
     thumbnail: 'http://imgur.com/',
-    author: message.author.id
+    image: `http://imgur.com/`,
+    author: { name: author.text, icon: embed.author.icon },
 })*/
 
 module.exports = function (embedOptions) {

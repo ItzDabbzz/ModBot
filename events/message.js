@@ -2,9 +2,18 @@ const Utils = require('../modules/utils')
 
 // The MESSAGE event runs anytime a message is received
 module.exports = async (client, message) => {
-    // Ignore Bots
-    if (message.author.bot) return;
+
   
+    if (/.+\-[0-9]{4}/.test(message.channel.name)) {
+      // TRANSCRIPTS
+      Utils.transcriptMessage(message);
+    }
+
+
+        // Ignore Bots
+    if (message.author.bot) return;
+
+    
       let prefix;
   
       prefix = `!`

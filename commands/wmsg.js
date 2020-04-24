@@ -5,7 +5,7 @@ exports.conf = {
     enabled: true,
     guildOnly: true,
     aliases: [],
-    permLevel: "Bot Owner"
+    permLevel: "Server Owner"
   };
   
   exports.help = {
@@ -17,26 +17,28 @@ exports.conf = {
   
 exports.run = async (client, message, args) => {
   let embed = Embed({
-    title: `Welome ${message.author.displayname} to Titan Leauge`,
-    description: `Please make sure to read over all discord rules in <@696609983735005296> `,
+    title: `Welome ${message.author.tag} to Titan Leauge`,
+    description: `Please make sure to read over all discord rules in [#rules](https://discordapp.com/channels/701828192729563157/701828192922501252/701851089250681023) `,
     fields: [{
-        name: 'How To Play',
-        value: `Phoenix League 10 Man Guide | [#rules](https://discordapp.com/channels/701828192729563157/701828192922501252/701851089250681023)
+        name: 'Phoenix League 10 Man Guide',
+        value: `
          Go to #register and enter =register (YOURUPLAYNAME)
          Go to #na-que or #eu-que and type =j to join queue
          Once 10 people are joined the match will populate.
          When the match is over you must go to #announcements-gameresults and react to who won the match`
     },
     {
-        name: 'Got questions?',
-        value: 'Head over to the #support-ticket and react to open a ticket.'
+        name: '❔ Got questions?',
+        value: 'Head over to the #support-ticket and react to open a ticket.',
+        inline: true
     },
     {
-        name: `Ban Appeals`,
-        value: `If you'd like to make a ban appeal subit a form using: https://forms.gle/FhBrT1ZDGgokwZ2N7`
+        name: `📝 Ban Appeals`,
+        value: `If you'd like to make a ban appeal subit a form using: https://forms.gle/FhBrT1ZDGgokwZ2N7`,
+        inline: true,
     }],
     timestamp: new Date(),
-    author: {name: message.author.id, icon: message.author.icon},
+    image: message.author.icon,
     footer: `Titan Leauge`
 })
   

@@ -3,7 +3,6 @@ let vars = Utils.Variables;
 const sqlite = require("better-sqlite3");
 const Embed = require('../modules/embed');
 let db = new sqlite("ModBot.sqlite");
-let getpunis = db.prepare("SELECT * FROM punishments");
 
 module.exports = {
     sqlite: {
@@ -27,6 +26,13 @@ module.exports = {
                 //db.prepare('CREATE TABLE IF NOT EXISTS experience(user text, guild text, level integer, xp integer)').run();
                 db.prepare("CREATE TABLE IF NOT EXISTS punishments (type TEXT, user TEXT, reason TEXT, time INTEGER,  executor TEXT)").run();
                 db.prepare("CREATE TABLE IF NOT EXISTS reports (id INTEGER PRIMARY KEY AUTOINCREMENT, userID TEXT, reportedby TEXT, reason TEXT)").run();
+
+                db.prepare('CREATE TABLE IF NOT EXISTS tickets(guild text, channel_id text, channel_name text, creator text, reason text, username text)').run();
+                db.prepare('CREATE TABLE IF NOT EXISTS ticketsaddedusers(user text, ticket text)').run();
+                db.prepare('CREATE TABLE IF NOT EXISTS ticketmessages (message text, author text, authorAvatar text, authorTag text, created_at integer, embed_title text, embed_description text, embed_color text, attachment text, content text, ticket text)').run()
+                db.prepare('CREATE TABLE IF NOT EXISTS ticketmessages_embed_fields (message text, name text, value text)').run()
+                
+                
             }catch (err) {
                         console.log(err);
                         reject('[ERROR] SQLite3 is not installed. Install it with npm install better-sqlite3. Bot will shut down.');
@@ -36,6 +42,16 @@ module.exports = {
         })
     },
     get: {
+        getModLog(name) {
+            if(name){
+                return new Promise((resolve, reject) => {
+                    module.exports.sqlite.database.all('SELECT * FROM modlog where name=?', [name], function (err, modlog) {
+                        if (err) return reject(err);
+                        resolve(modlog[0].enabled);
+                    })
+                })
+            }
+        },
         getCoins(user) {
             return new Promise((resolve, reject) => {
                 if (user) {
@@ -219,6 +235,110 @@ module.exports = {
                 })
             })
         }
+    },
+    tickets: {
+        addedUsers: {
+            remove(ticket, userid) {
+                if (!userid) return console.log('[Database.js#addedUsers#remove] Invalid inputs');
+                return new Promise((resolve, reject) => {
+                    module.exports.sqlite.database.run('DELETE FROM ticketsaddedusers WHERE ticket=? AND user=?', [ticket, userid], function (err) {
+                        if (err) reject(err);
+                        resolve();
+                    })
+                })
+            },
+            add(ticket, userid) {
+                if (Object.values(arguments).some(a => !a)) return console.log('[Database.js#addedUsers#add] Invalid inputs');
+                return new Promise((resolve, reject) => {
+                    module.exports.sqlite.database.run('INSERT INTO ticketsaddedusers(user, ticket) VALUES(?, ?)', [userid, ticket], function (err) {
+                        if (err) reject(err);
+                        resolve();
+                    })
+                })
+            }
+        },
+        createTicket(data) {
+            if (Object.values(arguments).some(a => !a)) return console.log('[Database.js#createTicket] Invalid inputs');
+            return new Promise((resolve, reject) => {
+                module.exports.sqlite.database.run('INSERT INTO tickets(guild, channel_id, channel_name, creator, reason, username) VALUES(?, ?, ?, ?, ?, ?)', [data.guild, data.channel_id, data.channel_name, data.creator, data.reason, data.username], function (err) {
+                    if (err) reject(err);
+                    resolve();
+                })
+
+            })
+        },
+        removeTicket(id) {
+            if (Object.values(arguments).some(a => !a)) return console.log('[Database.js#removeTicket] Invalid inputs');
+            return new Promise((resolve, reject) => {
+                module.exports.sqlite.database.run('DELETE FROM tickets WHERE channel_id=?', [id], function (err) {
+                    if (err) reject(err);
+                    resolve();
+                })
+            })
+        },
+        ticket_messages: {
+            getMessages(ticket) {
+                return new Promise((resolve, reject) => {
+                    if (!ticket) reject('Invalid ticket');
+                    module.exports.sqlite.database.all('SELECT * FROM ticketmessages WHERE ticket=?', [ticket], function (err, messages) {
+                        if (err) reject(err);
+                        resolve(messages);
+                    })
+                })
+            },
+            getEmbedFields(messageID) {
+                return new Promise((resolve, reject) => {
+                    if (!messageID) reject('Invalid messageID');
+                    module.exports.sqlite.database.all('SELECT * FROM ticketmessages_embed_fields WHERE message=?', [messageID], function (err, fields) {
+                        if (err) reject(err);
+                        resolve(fields);
+                    })
+                })
+            }
+        },
+        getTickets(id) {
+            return new Promise((resolve, reject) => {
+                if (id) {
+                    module.exports.sqlite.database.all('SELECT * FROM tickets WHERE channel_id=?', [id], function (err, tickets) {
+                        if (err) reject(err);
+                        else resolve(tickets[0])
+                    })
+
+                } else {
+
+                    module.exports.sqlite.database.all('SELECT * FROM tickets', function (err, tickets) {
+                        if (err) reject(err);
+                        else resolve(tickets);
+                    })
+                }
+            })
+        },
+        getTicketsUser(id) {
+            return new Promise((resolve, reject) => {
+                module.exports.sqlite.database.all('SELECT * FROM tickets WHERE channel_id=?', [id], function (err, tickets) {
+                    if (err) reject(err);
+                    resolve(tickets)
+                })
+            })
+        },
+        getAddedUsers(ticket) {
+            return new Promise((resolve, reject) => {
+                if (ticket) {
+                    // SQLITE
+                    module.exports.sqlite.database.all('SELECT * FROM ticketsaddedusers WHERE ticket=?', [ticket], function (err, addedusers) {
+                        if (err) reject(err);
+                        resolve(addedusers)
+                    })
+                } else {
+
+                    // SQLITE
+                    module.exports.sqlite.database.all('SELECT * FROM ticketsaddedusers', function (err, addedusers) {
+                        if (err) reject(err);
+                        resolve(addedusers);
+                    })
+                }
+            })
+        },
     },
     punishments: {
         addPunishment(data) {

@@ -5,7 +5,8 @@ const { promisify } = require("util");
 const readdir = promisify(require("fs").readdir);
 const client = new Discord.Client({ autoReconnect: true,
 restRequestTimeout: 25000,
-retryLimit: 5 });
+retryLimit: 5,
+partials: ['MESSAGE', 'REACTION'] });
 const variables = Utils.Variables;
 
 // Let's start by getting some useful functions that we'll use throughout
@@ -35,10 +36,7 @@ variables.set('client', client);
 variables.set('database', database)
 variables.set(`logger`, logger);
 
-
-
 async function init(){
-
 
   // Here we load **commands** into memory, as a collection, so they're accessible
   // here and everywhere else.

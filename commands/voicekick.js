@@ -15,11 +15,12 @@ exports.help = {
 };
 
 exports.run = async (client, message, args) => {
-      const modLogs = await client.db.r.table("guilds").get(message.guild.id).getField("modLogChannel").run();
+      //const modLogs = await client.db.r.table("guilds").get(message.guild.id).getField("modLogChannel").run();
       const type = "voicekick";
       const user = message.mentions.users.first() || client.users.cache.get(args[0]);
-      if(!user) return message.reply("You must mention someone or give their ID!");
+      if(!user) return message.channel.send(Embed({preset:`error`, description: `You must mention someone or give their ID`}))
       const reason = args.slice(1).join(" ");
+      if(!reason) return message.channel.send(Embed({preset:`error`, description: `No Reason Provided!`}))
       const member = message.guild.member(user);
       member.voice.setChannel(null, `Voice Kicked by ${message.author.name}`);
       message.react("✅");
