@@ -7,7 +7,7 @@
   
   exports.help = {
     name: "embed",
-    category: "Miscelaneous",
+    category: "Miscellaneous",
     description: "Preview a embed using JSON",
     usage: ""
   };

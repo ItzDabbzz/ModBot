@@ -4,9 +4,8 @@ module.exports = async (client, channelID) => {
 
   const ticket = await Utils.DB.tickets.getTickets(channelID);
 
-  Utils.Logger.log(ticket);
 
-  const guild = client.guilds.cache.get(client.guild);
+  const guild = client.guilds.cache.get(ticket.guild);
   const member = client.users.cache.get(ticket.creator);
 
   const ticketMessages = await Utils.DB.tickets.ticket_messages.getMessages(channelID);
@@ -184,13 +183,13 @@ module.exports = async (client, channelID) => {
       </style>
     </html>`;
   
-  const channel = Utils.findChannel(`Ticket-Logs`, client.guild);
+  const channel = Utils.findChannel(`ticket-logs`, ticket.guild);
   const dm = true;
   function sendTranscript(sucessfulSend = true) {
     if (channel) channel.send({
       embed: Utils.Embed({
         title: 'Transcript Created',
-        description: 'A transcript has been created for **#' + ticket.channel_name + '**' + (dm ? (sucessfulSend ? '\n:white_check_mark: **Sent to ticket author**' : '\n:x: **Unable to send to ticket author**') : ''),
+        description: (dm ? (sucessfulSend ? '\n ✅**Sent to ticket author**' : '\n❌ **Unable to send to ticket author**') : ''),
       }).embed,
       files: [
         {

@@ -8,6 +8,22 @@ module.exports = {
     DB: require('./data'),
     functions: require(`./functions`),
     Client: variables.client,
+    getValidInvites: function (guild) {
+        return new Promise((resolve, reject) => {
+            guild.fetchInvites()
+                .then(invites => {
+                    resolve(invites.map(i => {
+                        return {
+                            code: i.code,
+                            channel: i.channel,
+                            uses: i.uses ? i.uses : 0,
+                            inviter: i.inviter ? i.inviter : guild.member(bot.id)
+                        }
+                    }))
+                })
+                .catch(reject)
+        })
+    },
     transcriptMessage: function (message) {
         const isEmbed = message.embeds.length > 0;
 
@@ -90,7 +106,7 @@ module.exports = {
         let permlvl = 0;
     
         const permOrder = variables.client.config.permLevels.slice(0).sort((p, c) => p.level < c.level ? 1 : -1);
-    
+        this.Logger.log(`PermLevel Ran`)
         while (permOrder.length) {
           const currentLevel = permOrder.shift();
           if (message.guild && currentLevel.guildOnly) continue;
@@ -125,14 +141,14 @@ module.exports = {
             return false;
         }
         if (!guild) {
-            this.Logger.log(`[ERROR] Invalid input for guild. Channel Name: ${name}`, "error");
+            this.Logger.log(`[ERROR] Invalid input for guild. Channel Name: ${name}` , "error");
             return false;
         }
         if (!['text', 'voice', 'category'].includes(type.toLowerCase())) {
             this.Logger.log(`[ERROR] Invalid type of channel: ${type}`, "error");
             return false;
         }
-        const channel = guild.channels.cache.find(c => (c.name.toLowerCase() == name.toLowerCase() || c.id == name) && c.type.toLowerCase() == type.toLowerCase());
+        const channel = variables.client.channels.cache.find(c => (c.name.toLowerCase() == name.toLowerCase() || c.id == name) && c.type.toLowerCase() == type.toLowerCase());
         if (!channel) {
             if (notifyIfNotExists)
             this.Logger.log(`[ERROR] The ${name} channel/category was not found! Please create it.`, "error");
@@ -158,7 +174,6 @@ module.exports = {
         return role;
     },
     getMember: function(message, toFind = '') {
-        toFind = toFind.toLowerCase();
     
         let target = message.guild.members.cache.get(toFind);
     
@@ -229,5 +244,25 @@ module.exports = {
           throw error;
         }
     },
+    DDHHMMSSfromMS(ms) {
+        let secs = ms / 1000
+        const days = ~~(secs / 86400);
+        secs -= days * 86400;
+        const hours = ~~(secs / 3600);
+        secs -= hours * 3600;
+        const minutes = ~~(secs / 60);
+        secs -= minutes * 60;
+        let total = [];
 
+        if (days > 0)
+            total.push(~~days + " days");
+        if (hours > 0)
+            total.push(~~hours + " hrs")
+        if (minutes > 0)
+            total.push(~~minutes + " mins")
+        if (secs > 0)
+            total.push(~~secs + " secs")
+        if ([~~days, ~~hours, ~~minutes, ~~secs].every(time => time == 0)) total.push("0 secs");
+        return total.join(", ");
+    }
 }

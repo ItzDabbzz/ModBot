@@ -10,7 +10,7 @@ exports.conf = {
   
   exports.help = {
     name: "sping",
-    category: "Miscelaneous",
+    category: "Miscellaneous",
     description: "Shows Ping & Latency Of Dabbzz's Servers",
     usage: ""
   };

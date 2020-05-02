@@ -6,8 +6,8 @@ const Embed = Utils.Embed;
 module.exports = (client) => {
 
   client.hasAdvertisment = function (text, ignoreIfInWhitelist = true) {
-    if (!text || typeof text !== 'string') {
-        console.log(`[ERROR] Invalid input for advertisment: ${name}`);
+    if (!text) {
+        console.log(`[ERROR] Invalid input for advertisment: ${text}`);
         return false;
     }
     if (text.includes(client.config.Whitelisted_Websites) && ignoreIfInWhitelist) return false;

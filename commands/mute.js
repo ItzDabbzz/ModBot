@@ -13,8 +13,8 @@
   exports.help = {
     name: "mute",
     category: "Moderation",
-    description: "Shows latency and API Ping.",
-    usage: ""
+    description: "Mute a member for a period of time",
+    usage: "<@user> 1d1h <reason>"
   };
   
 exports.run = async (client, message, args) => {
@@ -62,7 +62,7 @@ exports.run = async (client, message, args) => {
       // Check current time and add muted time to it, then convert to seconds from milliseconds
       client.muted[toMute.id] = {
         guild: message.guild.id,
-        time: Date.now() + args[1]
+        time: Date.now() + ms(args[1])
         //parseInt(args[1]) * 1000
       };
 
@@ -74,6 +74,13 @@ exports.run = async (client, message, args) => {
         time: message.createdAt.getTime(),
         executor: message.author.id
     })
+
+    await Utils.DB.punishments.addStrike({
+      user: toMute.id,
+      reason: `Mute +1 | ${args.slice(2).join(" ")}`,
+      time: message.createdAt.getTime(),
+      executor: message.author.id
+  })
     
       // Add the mentioned user to the "mutedRole" and notify command sender
       await toMute.roles.add(mutedRole);
@@ -82,10 +89,10 @@ exports.run = async (client, message, args) => {
       //Simple way to continue on if the bot restarts
       fs.writeFile('./data/muted.json', JSON.stringify(client.muted, null, 4), err => {
         if (err) throw err;
-        message.channel.send(Embed({title:`Muted User`, description: `${toMute.user.tag}`, footer: `Reason: ${args.slice(2).join(" ") || "No Reason"} | Muted For ${ms(args[1])}`}));
+        message.channel.send(Embed({title:`Muted User`, description: `${toMute.user.tag}`, footer: `Reason: ${args.slice(2).join(" ") || "No Reason"} | Muted For ${Utils.DDHHMMSSfromMS(ms(args[1]))}`}));
       });
   }else{
-    message.channel.send(Embed({preset:`error`, description: `Please enter the correct time length.. 1d2h30s || 1d120s (Must be lowercase and in that order)`}));
+    message.channel.send(Embed({preset:`error`, description: `Please enter the correct time length.. 1d2h || 12h (Must be lowercase)`}));
   }
   
 

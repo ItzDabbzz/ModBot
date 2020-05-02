@@ -33,6 +33,13 @@ exports.run = async (client, message, args) => {
         executor: message.author.id
     })
 
+    await Utils.DB.punishments.addStrike({
+      user: user.id,
+      reason: `Voice Kick +1 | ${reason}`,
+      time: message.createdAt.getTime(),
+      executor: message.author.id
+  })
+
       //client.db.createPunish(client, message, type, user, reason, modLogs);
       //client.logger.log(`${user} Voice Kicked By ${message.author.name}`);
   }

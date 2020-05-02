@@ -1,4 +1,5 @@
 
+
 const Discord = require("discord.js");
 const Utils = require('./modules/utils');
 const { promisify } = require("util");
@@ -21,10 +22,15 @@ client.config = require("./config.js");
 client.muted = require('./data/muted.json');
 
 
+client.wait = require('util').promisify(setTimeout);
+
 // Aliases and commands are put in collections where they can be read from,
 // catalogued, listed, etc.
 client.commands = new Discord.Collection();
 client.aliases = new Discord.Collection();
+
+// `await client.wait(1000);` to "pause" for 1 second.
+client.wait = require("util").promisify(setTimeout);
 
 const database = require(`./modules/data`);
 const logger = require('./modules/Logger')
@@ -91,8 +97,6 @@ async function init(){
     }
   });
 
-  // `await client.wait(1000);` to "pause" for 1 second.
-  client.wait = require("util").promisify(setTimeout);
 
   // These 2 process methods will catch exceptions and give *more details* about the error and stack trace.
   process.on("uncaughtException", (err) => {
@@ -112,6 +116,28 @@ async function init(){
   // Here we login the client.
   client.login(`NjczOTA5MjE3NTE3ODk1Njgx.XpndkA.sTzf-STiBzpzarApFFrsRL51NS8`);
   variables.set('client', client);
+
+  
+  const readline = require('readline');
+
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout
+  });
+
+  rl.on('line', (input) => {
+    if (input == 'stop') {
+      console.log('Bot shutting down...');
+      process.exit();
+    }
+
+    if (input == 'status') {
+      const guild = client.guilds.resolveID(`704194297943294042`);
+      const mem = guild.members.fetch()
+
+      console.log(`${guild} , ${mem.length} users`);
+    }
+  });
 }
 
 

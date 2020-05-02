@@ -4,7 +4,7 @@ exports.conf = {
   enabled: true,
   guildOnly: true,
   aliases: ["bc", "broadcast"],
-  permLevel: "User"
+  permLevel: "Administrator"
 };
 
 exports.help = {

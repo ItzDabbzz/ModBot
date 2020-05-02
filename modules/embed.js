@@ -48,7 +48,7 @@ module.exports = function (embedOptions) {
                     embed: {
                         color: `#FF0000`,
                         title: "Invalid Arguments",
-                        description: `Usage: \`\`${Config.Bot_Prefix}${embedOptions.usage}\`\``,
+                        description: `Usage: \`\`!${embedOptions.usage}\`\``,
                         timestamp: new Date()
                     }
                 }
@@ -63,7 +63,7 @@ module.exports = function (embedOptions) {
                     embed: {
                         color: `#FF0000`,
                         title: embedOptions.description,
-                        description: 'Usage: ' + Config.Bot_Prefix + embedOptions.usage
+                        description: 'Usage: !' + embedOptions.usage
                     }
                 }
                 return {
@@ -77,13 +77,13 @@ module.exports = function (embedOptions) {
                     return {
                         embed: {
                             color: `#FF0000`,
-                            title: 'An error has occured while running this command. Please check console.'
+                            title: 'An error has occurred while running this command. Please check console.'
                         }
                     }
                 default:
                     return {
                         embed: {
-                            color: Theme_Color,
+                            color: `#FF0000`,
                             title: "Error",
                             description: "An error has occurred."
                         }
@@ -105,13 +105,25 @@ module.exports = function (embedOptions) {
             if (typeof author == "string")
                 embed.author = { name: author };
             if (embed.author.icon)
-                embed.author = { name: author.text, icon: embed.author.icon };
+                embed.author = { name: author.text, icon_url: embed.author.icon };
         }
         if (embed.thumbnail)
             embed.thumbnail = { url: embed.thumbnail };
         if (embed.image)
             embed.image = { url: embed.image };
+        if (embed.description)
+            embed.description = format(embed.description, 2048);
+        if (embed.fields)
+            embed.fields = embed.fields.map(field => {
+                let f = { name: format(field.name, 1024), value: format(field.value, 1024), inline: (field.inline) ? true : false }
+                return f;
+            });
         return { embed: embed };
     }
 }
 
+const format = (text, max) => {
+    return text
+        .toString()
+        .slice(0, max);
+}

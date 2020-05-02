@@ -29,12 +29,15 @@ exports.run = async (client, message, args) => {
     // User variables
     const created = client.formatDate(member.user.createdAt);
 
+    const muted = client.muted[member.id] || member.roles.cache.some(role => role.name === `Muted`);
+
     let nickname = member.nickname;
     if (nickname) {
         nickname = member.nickname;
     } else {
         nickname = "None"
     };
+
 
     //const reports = Utils.Variables.database.get.getReportsNum(member.id);
    // const mutes = Utils.Variables.database.get.getMutesNum(member.id);
@@ -66,6 +69,7 @@ exports.run = async (client, message, args) => {
             {   
             name: 'Punishments:',
             value: stripIndents`**> Mutes**: ${value.length}
+            **> Muted**: ${(muted) ? `✅` : `❎`}
             **> Kickable**: ${kickable}
             **> Bannable**: ${bannable}`
             }],

@@ -8,9 +8,9 @@ exports.run = async (client, message, args) => {
         }
 
         if (msgcount < 150 && msgcount > 100) {
-            message.channel.fetchMessages({limit: 100}).then(messages => message.channel.bulkDelete(messages));
+            message.channel.messages.fetch({limit: 100}).then(messages => message.channel.bulkDelete(messages));
             todel = msgcount - 100;
-            message.channel.fetchMessages({limit: todel}).then(messages => message.channel.bulkDelete(messages));
+            message.channel.messages.fetch({limit: todel}).then(messages => message.channel.bulkDelete(messages));
             return;
         }
         if (msgcount >= 150 && msgcount <= 1000) {
@@ -23,14 +23,14 @@ exports.run = async (client, message, args) => {
                     m = i - 1;
                     m = m * 100;
                     todelete = msgcount - m;
-                    message.channel.fetchMessages({limit: todelete}).then(messages => message.channel.bulkDelete(messages));
+                    message.channel.messages.fetch({limit: todelete}).then(messages => message.channel.bulkDelete(messages));
                 } else {
-                    message.channel.fetchMessages({limit: 100}).then(messages => message.channel.bulkDelete(messages));
+                    message.channel.messages.fetch({limit: 100}).then(messages => message.channel.bulkDelete(messages));
                 }
                 i++;
             }
         } else {
-            message.channel.fetchMessages({limit: msgcount}).then(messages => message.channel.bulkDelete(messages));
+            message.channel.messages.fetch({limit: msgcount}).then(messages => message.channel.bulkDelete(messages));
         }
     }
 

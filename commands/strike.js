@@ -7,25 +7,24 @@ exports.run = async (client, message, args) => {
 
         // No args
         if (!args[0]) {
-            return message.reply("Please provide a person to ban.")
+            return message.reply("Please provide a person to Strike.")
                 .then(m => m.delete({timeout: 5000}));
         }
 
         // No reason
         if (!args[1]) {
-            return message.reply("Please provide a reason to ban.")
+            return message.reply("Please provide a reason to Strike.")
                 .then(m => m.delete({timeout: 5000}));
         }
 
         // No author permissions
         if (!message.member.hasPermission("BAN_MEMBERS")) {
-            return message.reply("❌ You do not have permissions to ban members. Please contact a staff member")
+            return message.reply("❌ You do not have permissions to Strike members. Please contact a staff member")
                 .then(m => m.delete({timeout: 5000}));
-        
         }
         // No bot permissions
         if (!message.guild.me.hasPermission("BAN_MEMBERS")) {
-            return message.reply("❌ I do not have permissions to ban members. Please contact a staff member")
+            return message.reply("❌ I do not have permissions to Strike members. Please contact a staff member")
                 .then(m => m.delete({timeout: 5000}));
         }
 
@@ -39,18 +38,18 @@ exports.run = async (client, message, args) => {
 
         // Can't ban urself
         if (toBan.id === message.author.id) {
-            return message.reply("You can't ban yourself...")
+            return message.reply("You can't Strike yourself...")
                 .then(m => m.delete({timeout: 5000}));
         }
 
         // Check if the user's banable
         if (!toBan.bannable) {
-            return message.reply("I can't ban that person due to role hierarchy, I suppose.")
+            return message.reply("I can't Strike that person due to role hierarchy, I suppose.")
                 .then(m => m.delete({timeout: 5000}));
         }
 
         let promptEmbed = Embed({
-                description: `Do you want to ban ${toBan}?`,
+                description: `Do you want to Strike ${toBan}?`,
                 timestamp: new Date(),
                 author: `This verification becomes invalid after 30s.`,
                 footer: `${client.config.footer}`,
@@ -66,8 +65,7 @@ exports.run = async (client, message, args) => {
             if (emoji === "✅") {
                 msg.delete();
 
-                await Utils.Variables.database.punishments.addPunishment({
-                    type: `ban`,
+                await Utils.DB.punishments.addStrike({
                     user: toBan.id,
                     reason: reason,
                     time: message.createdAt.getTime(),
@@ -75,17 +73,17 @@ exports.run = async (client, message, args) => {
                 })
 
                 //await client.db.createPunish(client, message, type, toBan, reason, modLogs);
-                Utils.Logger.log(`User Banned ${toBan}`);
+                Utils.Logger.log(`User Strike ${toBan}`);
                 toBan.ban({days: 7 , reason: reason})
                     .catch(err => {
-                        if (err) return message.channel.send(`Well.... the ban didn't work out. Here's the error ${err}`)
+                        if (err) return message.channel.send(`Well.... the Strike didn't work out. Here's the error ${err}`)
                     });
 
                 //logChannel.send(embed);
             } else if (emoji === "❌") {
                 msg.delete();
 
-                message.reply(`ban canceled.`)
+                message.reply(`Strike canceled.`)
                     .then(m => m.delete({timeout:10000}));
             }
         });
@@ -94,13 +92,13 @@ exports.run = async (client, message, args) => {
 exports.conf = {
   enabled: true,
   guildOnly: true,
-  aliases: ["ban"],
+  aliases: [],
   permLevel: "Moderator"
 };
   
 exports.help = {
-  name: "ban",
+  name: "Strike",
   category: "Moderation",
-  description: "Bans a user",
+  description: "Strikes a user",
   usage: "<id | mention> <reason>"
 };

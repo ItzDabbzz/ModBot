@@ -7,7 +7,7 @@
   
   exports.help = {
     name: "ping",
-    category: "Miscelaneous",
+    category: "Miscellaneous",
     description: "Shows latency and API Ping.",
     usage: ""
   };

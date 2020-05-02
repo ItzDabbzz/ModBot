@@ -5,7 +5,7 @@ exports.conf = {
     enabled: true,
     guildOnly: true,
     aliases: [],
-    permLevel: "Server Owner"
+    permLevel: "User"
   };
   
   exports.help = {
@@ -33,8 +33,8 @@ exports.run = async (client, message, args) => {
   let staff = Utils.findRole(`Staff`, message.guild)
   let category = Utils.findChannel(`Open Tickets`, message.guild, 'category');
 
-  if (!staff) return message.channel.send(Embed({ preset: 'error', description: 'Comamnd failed. Cant Find The Role Staff' }));
-  if (!category) return message.channel.send(Embed({ preset: 'error', description: 'Comamnd failed. Cant find the Open Tickets category.' }));
+  if (!staff) return message.channel.send(Embed({ preset: 'error', description: 'Command failed. Cant Find The Role Staff' }));
+  if (!category) return message.channel.send(Embed({ preset: 'error', description: 'Command failed. Cant find the Open Tickets category.' }));
    
 
   message.guild.channels.create(`ticket-${next_ticket_number}`, {
@@ -59,10 +59,10 @@ exports.run = async (client, message, args) => {
 
     let embed = Embed({
       title: `Welcome ${message.author.username}`,
-      description: `Reason: ${reason}
+      description: `Reason: ${reason}.
       Support will be with you shortly. 
       React With 🔐 To Close The Ticket`,
-      footer: { text: `Titan Leauge`, icon_url: message.guild.iconURL({format:`png`, dynamic:true}) },
+      footer: { text: `NA-Pug | ${client.config.footer}`, icon_url: message.guild.iconURL({format:`png`, dynamic:true}) },
       color: `#03fcd3`,
       timestamp: new Date(),
     })

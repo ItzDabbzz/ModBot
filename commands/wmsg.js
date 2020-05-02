@@ -10,7 +10,7 @@ exports.conf = {
   
   exports.help = {
     name: "wmsg",
-    category: "Miscelaneous",
+    category: "Miscellaneous",
     description: "Welcome Message Test Command",
     usage: ""
   };
@@ -34,7 +34,7 @@ exports.run = async (client, message, args) => {
     },
     {
         name: `📝 Ban Appeals`,
-        value: `If you'd like to make a ban appeal subit a form using: https://forms.gle/FhBrT1ZDGgokwZ2N7`,
+        value: `If you'd like to make a ban appeal subit a form using: https://forms.gle/Mztovdk1nkvFFtsu5`,
         inline: true,
     }],
     timestamp: new Date(),

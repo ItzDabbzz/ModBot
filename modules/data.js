@@ -23,7 +23,7 @@ module.exports = {
                 db.prepare('CREATE TABLE IF NOT EXISTS modlog(name text, enabled text)').run();
                 //db.prepare('CREATE TABLE IF NOT EXISTS coins(user text, guild text, coins integer)').run();
                 //db.prepare('CREATE TABLE IF NOT EXISTS dailycoinscooldown (user text, guild text, date text)').run();
-                //db.prepare('CREATE TABLE IF NOT EXISTS experience(user text, guild text, level integer, xp integer)').run();
+                db.prepare('CREATE TABLE IF NOT EXISTS experience(user text, guild text, level integer, xp integer)').run();
                 db.prepare("CREATE TABLE IF NOT EXISTS punishments (type TEXT, user TEXT, reason TEXT, time INTEGER,  executor TEXT)").run();
                 db.prepare("CREATE TABLE IF NOT EXISTS reports (id INTEGER PRIMARY KEY AUTOINCREMENT, userID TEXT, reportedby TEXT, reason TEXT)").run();
 
@@ -51,6 +51,25 @@ module.exports = {
                     })
                 })
             }
+        },
+        getAddedUsers(ticket) {
+            return new Promise((resolve, reject) => {
+                if (ticket) {
+                    // SQLITE
+                    module.exports.sqlite.database.all('SELECT * FROM ticketsaddedusers WHERE ticket=?', [ticket], function (err, addedusers) {
+                        if (err) reject(err);
+                        resolve(addedusers)
+                    })
+                } else {
+
+                    // SQLITE
+                    module.exports.sqlite.database.all('SELECT * FROM ticketsaddedusers', function (err, addedusers) {
+                        if (err) reject(err);
+                        resolve(addedusers);
+                    })
+
+                }
+            })
         },
         getCoins(user) {
             return new Promise((resolve, reject) => {
@@ -134,17 +153,17 @@ module.exports = {
                 })
             })
         },
-        getWarnings(user) {
+        getStrikes(user) {
             return new Promise((resolve, reject) => {
                 if (user && user.id) {
-                    module.exports.sqlite.database.all('SELECT * FROM warnings WHERE user=?', [user.id], function (err, warnings) {
+                    module.exports.sqlite.database.all('SELECT * FROM strikes WHERE user=?', [user.id], function (err, strikes) {
                         if (err) reject(err);
-                        else resolve(warnings);
+                        else resolve(strikes);
                         })
                 } else {
-                    module.exports.sqlite.database.all('SELECT * FROM warnings', function (err, warnings) {
+                    module.exports.sqlite.database.all('SELECT * FROM strikes', function (err, strikes) {
                         if (err) reject(err);
-                        else resolve(warnings);
+                        else resolve(strikes);
                     })
                 }
             })
@@ -215,19 +234,26 @@ module.exports = {
         }
     },
     experience: {
-        updateExperience(user, level, xp) {
+        updateExperience(user, level, xp, action) {
             return new Promise(async (resolve, reject) => {
                 if ([user, user.guild].some(t => !t) || isNaN(level) || isNaN(xp)) reject('Invalid parameters in updateExperience');
 
                 module.exports.sqlite.database.all('SELECT * FROM experience WHERE user=? AND guild=?', [user.id, user.guild.id], function (err, experience) {
                     if (err) reject(err);
+                    let newxp;
                     if (experience.length > 0) {
-                        module.exports.sqlite.database.run('UPDATE experience SET level=?, xp=? WHERE user=? AND guild=?', [level, xp, user.id, user.guild.id], function (err) {
+                        if (action == 'add') newxp = experience[0].xp + xp;
+                        if (action == 'remove') newxp = experience[0].xp - xp;
+                        if (action == 'set') newxp = xp;
+                        module.exports.sqlite.database.run('UPDATE experience SET level=?, xp=? WHERE user=? AND guild=?', [level, newxp, user.id, user.guild.id], function (err) {
                             if (err) reject(err);
                             resolve();
                         })
                     } else {
-                        module.exports.sqlite.database.run('INSERT INTO experience(user, guild, level, xp) VALUES(?, ?, ?, ?)', [user.id, user.guild.id, level, xp], function (err) {
+                        if (action == 'add') newxp = experience[0].xp + xp;
+                        if (action == 'remove') newxp = 0 - xp;
+                        if (action == 'set') newxp = xp;
+                        module.exports.sqlite.database.run('INSERT INTO experience(user, guild, level, xp) VALUES(?, ?, ?, ?)', [user.id, user.guild.id, level, newxp], function (err) {
                             if (err) reject(err);
                             resolve();
                         })
@@ -358,19 +384,19 @@ module.exports = {
                 })
             })
         },
-        addWarning(data) {
+        addStrike(data) {
             return new Promise((resolve, reject) => {
-                if (['user', 'reason', 'time', 'executor'].some(a => !data[a])) return reject('Invalid arguments for addWarning');
+                if (['user', 'reason', 'time', 'executor'].some(a => !data[a])) return reject('Invalid arguments for addStrike');
 
-                module.exports.sqlite.database.run('INSERT INTO warnings(user, reason, time, executor) VALUES(?, ?, ?, ?, ?)', [data.user, data.reason, data.time, data.executor], function (err) {
+                module.exports.sqlite.database.run('INSERT INTO strikes(user, reason, time, executor) VALUES(?, ?, ?, ?, ?)', [data.user, data.reason, data.time, data.executor], function (err) {
                     if (err) reject(err);
                     else resolve();
                 })
             })
         },
-        removeWarning(id) {
+        removeStrike(id) {
             return new Promise((resolve, reject) => {
-                module.exports.sqlite.database.run('DELETE FROM warnings WHERE id=?', [id], function (err) {
+                module.exports.sqlite.database.run('DELETE FROM strikes WHERE id=?', [id], function (err) {
                     if (err) reject(err);
                     else resolve(err);
                 })

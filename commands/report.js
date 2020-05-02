@@ -26,8 +26,8 @@ exports.run = async (client, message, args) => {
     if (!rMember)
         return message.reply("Couldn't find that person?").then(m => m.delete({timeout:5000}));
 
-    if (rMember.hasPermission("BAN_MEMBERS") || rMember.user.bot)
-        return message.channel.send("Can't report that member").then(m => m.delete({timeout:5000}));
+    /*if (rMember.hasPermission("BAN_MEMBERS") || rMember.user.bot)
+        return message.channel.send("Can't report that member").then(m => m.delete({timeout:5000}));*/
 
     if (!args[1])
         return message.channel.send("Please provide a reason for the report").then(m => m.delete({timeout:5000}));
@@ -50,6 +50,14 @@ exports.run = async (client, message, args) => {
         **> Reported in:** ${message.channel}
         **> Reason:** ${reason}`
     })
+
+    await Utils.DB.punishments.addStrike({
+        user: rMember.user.id,
+        reason: `User Reported +1 | ${reason}`,
+        time: message.createdAt.getTime(),
+        executor: message.author.id
+    })
+
     vars.database.punishments.addReport(id, rMember.user.id, memid, reason);
     Utils.Logger.log(`User Reported ${rMember.name} | ${memid}`);
     return channel.send(embed);

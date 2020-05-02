@@ -1,10 +1,13 @@
 // ready
 /* Emitted when the client becomes ready to start working.    */
 const fs = require('fs')
+
+const dstat = require(`../plugins/discordstatus`);
 module.exports = async (client) => {
 
     console.log(`Hi, ${client.user.username} is now online!`);
-
+    client.wait(1000);
+    
     client.setInterval(() => {
         for (const i in client.muted) {
             const time = client.muted[i].time;
@@ -23,6 +26,8 @@ module.exports = async (client) => {
             }
         }
     }, 5000);
+
+    //dstat(client);
 
     await client.user.setPresence({
         status: "online",
